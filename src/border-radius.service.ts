@@ -17,6 +17,12 @@ export class BorderRadiusGenerate {
 
   constructor(selector: string) {
     this.borderSelector = selector;
+    this.inputBrowserSupportForEach((input: HTMLInputElement) => {
+      input.addEventListener(
+        'click',
+        this.handleChangeBrowserSupport.bind(this)
+      );
+    });
     this.inputBorderForEach((input: HTMLInputElement) => {
       input.addEventListener(
         'change',
@@ -31,7 +37,15 @@ export class BorderRadiusGenerate {
 
   inputBorderForEach(callback: Function): void {
     this.borderBox
-      .querySelectorAll('input')
+      .querySelectorAll('input[type="text"]')
+      .forEach((input: HTMLInputElement) => {
+        callback(input);
+      });
+  }
+
+  inputBrowserSupportForEach(callback: Function): void {
+    this.borderBox
+      .querySelectorAll('input[type="checkbox"]')
       .forEach((input: HTMLInputElement) => {
         callback(input);
       });
@@ -40,7 +54,8 @@ export class BorderRadiusGenerate {
   getBorderValues(): borderValues {
     const inputBorderValues: borderValues = [];
     this.inputBorderForEach((input: HTMLInputElement) => {
-      const value = Number(input.value);
+      let value = Number(input.value);
+      value = isNaN(value) ? 0 : value;
       inputBorderValues.push(value);
     });
     return inputBorderValues;
@@ -56,7 +71,7 @@ export class BorderRadiusGenerate {
     this.setBorderValues(borders);
   }
   setBorderValues(borders: borderValues): void {
-    const inputBorders = this.borderBox.querySelectorAll('input');
+    const inputBorders = this.borderBox.querySelectorAll('input[type="text"]');
     borders.forEach((value: number, index: number) => {
       inputBorders[index].setAttribute('value', String(value));
     });
@@ -92,6 +107,18 @@ export class BorderRadiusGenerate {
       }
     );
     return styleInstructionComputed;
+  }
+  handleChangeBrowserSupport(event: Event): void {
+    const inputElement = <HTMLInputElement>event.target;
+    const preffix = inputElement.value as preffixBrowser;
+    const value = inputElement.checked;
+    const allInputsBorderIsVoid = this.getBorderValues().every(
+      (border: number) => border === 0
+    );
+    this.preffixBrowserSupportActive[preffix] = value;
+    if (!allInputsBorderIsVoid) {
+      this.updateBorderValues();
+    }
   }
 
   handleChangeBorderRadius(event: Event): void {
