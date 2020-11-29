@@ -1,9 +1,5 @@
-type borderKey = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
 type preffixBrowser = 'webKit' | 'gecko' | 'css3';
-type stylesBorder = {
-  key: string;
-  value: string;
-};
+type borderValues = [number?, number?, number?, number?];
 
 export class BorderRadiusGenerate {
   private readonly UnitMeasurement = 'px';
@@ -14,136 +10,97 @@ export class BorderRadiusGenerate {
   };
   private preffixBrowserSupportActive = {
     css3: true,
-    gecko: true,
-    webKit: true,
-  };
-
-  private readonly borderStyleProperty = {
-    topLeft: 'border-top-left-radius',
-    topRight: 'border-top-right-radius',
-    bottomLeft: 'border-bottom-left-radius',
-    bottomRight: 'border-bottom-right-radius',
-  };
-  private borderStyleValue = {
-    topLeft: 0,
-    topRight: 0,
-    bottomLeft: 0,
-    bottomRight: 0,
+    gecko: false,
+    webKit: false,
   };
   private borderSelector: string;
 
   constructor(selector: string) {
     this.borderSelector = selector;
-    this.borderBox
-      .querySelectorAll('input')
-      .forEach((element: HTMLInputElement) => {
-        element.addEventListener(
-          'change',
-          this.handleChangeBorderRadius.bind(this)
-        );
-      });
+    this.inputBorderForEach((input: HTMLInputElement) => {
+      input.addEventListener(
+        'change',
+        this.handleChangeBorderRadius.bind(this)
+      );
+    });
   }
 
   get borderBox(): HTMLDivElement {
     return document.querySelector(this.borderSelector);
   }
-  setInitialBorderValues() {
-    Object.keys(this.borderStyleProperty).forEach((key: string) => {});
+
+  inputBorderForEach(callback: Function): void {
+    this.borderBox
+      .querySelectorAll('input')
+      .forEach((input: HTMLInputElement) => {
+        callback(input);
+      });
   }
-  interatorBorderStyleDataPreffix(callback: Function) {
+
+  getBorderValues(): borderValues {
+    const inputBorderValues: borderValues = [];
+    this.inputBorderForEach((input: HTMLInputElement) => {
+      const value = Number(input.value);
+      inputBorderValues.push(value);
+    });
+    return inputBorderValues;
+  }
+  haveOnlyOneBorderWithValue(): boolean {
+    const inputBorderValuesNotZero = this.getBorderValues().filter(
+      (border: number) => border !== 0
+    );
+    return inputBorderValuesNotZero.length === 1;
+  }
+  updateBorderValues(): void {
+    const borders = this.getBorderValues();
+    this.setBorderValues(borders);
+  }
+  setBorderValues(borders: borderValues): void {
+    const inputBorders = this.borderBox.querySelectorAll('input');
+    borders.forEach((value: number, index: number) => {
+      inputBorders[index].setAttribute('value', String(value));
+    });
+    this.setBorderStyles(borders);
+  }
+  setBorderStyles(bordersValue: borderValues): void {
+    const styleProperties: borderValues = [];
+    bordersValue.forEach((value: number) => {
+      styleProperties.push(value);
+    });
+    const borderRadiusValues = styleProperties.join(`${this.UnitMeasurement} `);
+    const style = `border-radius: ${borderRadiusValues}${this.UnitMeasurement}`;
+    const borderStyleHtmlContent = this.getBorderStylesHtmlContent(style);
+
+    this.borderBox.querySelector('.box-radius').setAttribute('style', style);
+    this.borderBox.querySelector(
+      '.box-radius-content'
+    ).innerHTML = borderStyleHtmlContent;
+    this.borderBox.querySelector(
+      '.box-radius-content-mobile'
+    ).innerHTML = borderStyleHtmlContent;
+  }
+
+  getBorderStylesHtmlContent(instruction: string): string {
+    let styleInstructionComputed = '';
     Object.keys(this.preffixBrowserSupportActive).forEach(
       (key: preffixBrowser) => {
-        if (this.preffixBrowserSupportActive[key]) {
-          callback(this.preffixBrowserSupport[key]);
+        const isPreffixBrowserActive = this.preffixBrowserSupportActive[key];
+        if (isPreffixBrowserActive) {
+          const preffix = this.preffixBrowserSupport[key];
+          styleInstructionComputed += `<span>${preffix}${instruction};</span>`;
         }
       }
     );
-  }
-  interatorBorderStyleData(callback: Function) {
-    const styles: stylesBorder[] = [];
-    if (this.isFirstBorderWithValue()) {
-      let value = `${this.getBorderValueNotVoid()}${this.UnitMeasurement}`;
-      styles.push({ key: 'border-radius', value });
-    } else if (this.allBordersEqual()) {
-      let value = `${this.borderStyleValue.topLeft}${this.UnitMeasurement}`;
-      styles.push({ key: 'border-radius', value });
-    } else {
-      Object.keys(this.borderStyleProperty).forEach((key: borderKey) => {
-        const propertyCSSName = this.borderStyleProperty[key];
-        const propertyCSSValue = this.borderStyleValue[key];
-        const value = `${propertyCSSValue}${this.UnitMeasurement}`;
-        styles.push({ key: propertyCSSName, value });
-      });
-    }
-    this.interatorBorderStyleDataPreffix((preffix: preffixBrowser) => {
-      styles.forEach((data: stylesBorder) => {
-        callback(`${preffix}${data.key}`, data.value);
-      });
-    });
-  }
-  getBorderValueNotVoid() {
-    const direction = <borderKey>(
-      Object.keys(this.borderStyleProperty).find(
-        (key: borderKey) => this.borderStyleValue[key] !== 0
-      )
-    );
-    return this.borderStyleValue[direction];
-  }
-  isFirstBorderWithValue() {
-    const qntBordersValuesNotZero = Object.keys(
-      this.borderStyleProperty
-    ).filter((key: borderKey) => this.borderStyleValue[key] !== 0);
-    return Object.values(qntBordersValuesNotZero).length === 1;
+    return styleInstructionComputed;
   }
 
-  allBordersEqual(): boolean {
-    return Object.keys(this.borderStyleValue).every(
-      (key: borderKey) =>
-        this.borderStyleValue[key] === this.borderStyleValue.topLeft
-    );
-  }
-
-  addBorder(direction: borderKey, borderValue: number) {
-    this.borderStyleValue[direction] = borderValue;
-    this.updateBorderStyle();
-    this.showBorderStyle();
-  }
-  showBorderStyle() {
-    let styles = '';
-    this.interatorBorderStyleData((property: string, value: string) => {
-      styles += `<span>${property}:${value};</span>`;
-    });
-
-    this.borderBox.querySelector('.box-radius-content').innerHTML = styles;
-    this.borderBox.querySelector(
-      '.box-radius-content-mobile'
-    ).innerHTML = styles;
-  }
-
-  updateBorderStyle() {
-    let styles = '';
-    this.interatorBorderStyleData((property: string, value: string) => {
-      styles += `${property}:${value}; `;
-    });
-    if (this.isFirstBorderWithValue()) {
-      let value = this.getBorderValueNotVoid();
-      this.borderStyleValue.topLeft = value;
-      this.borderStyleValue.topRight = value;
-      this.borderStyleValue.bottomLeft = value;
-      this.borderStyleValue.bottomRight = value;
-      this.borderBox
-        .querySelectorAll('input')
-        .forEach((element: HTMLInputElement) => {
-          element.setAttribute('value', String(value));
-        });
-    }
-    this.borderBox.querySelector('.box-radius').setAttribute('style', styles);
-  }
-
-  handleChangeBorderRadius(event: Event) {
+  handleChangeBorderRadius(event: Event): void {
     const inputElement = <HTMLInputElement>event.target;
-    const direction = <borderKey>inputElement.getAttribute('direction');
     const value = Number(inputElement.value);
-    this.addBorder(direction, value);
+    if (this.haveOnlyOneBorderWithValue()) {
+      this.setBorderValues([value, value, value, value]);
+    } else {
+      this.updateBorderValues();
+    }
   }
 }

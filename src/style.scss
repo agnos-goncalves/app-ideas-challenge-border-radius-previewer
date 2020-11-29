@@ -44,6 +44,9 @@ h1 {
   justify-content: space-between;
   flex-wrap: wrap;
   margin: 10px 0;
+  &.-reverse {
+    flex-direction: row-reverse;
+  }
 }
 
 .box-radius-content-mobile {
