@@ -73,7 +73,7 @@ export class BorderRadiusGenerate {
   setBorderValues(borders: borderValues): void {
     const inputBorders = this.borderBox.querySelectorAll('input[type="text"]');
     borders.forEach((value: number, index: number) => {
-      inputBorders[index].setAttribute('value', String(value));
+      (<HTMLInputElement>inputBorders[index]).value = String(value);
     });
     this.setBorderStyles(borders);
   }
