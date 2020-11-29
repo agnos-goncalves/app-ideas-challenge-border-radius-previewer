@@ -4,10 +4,39 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Border Radius Preview</title>
+    <script src="bundle.js"></script>
   </head>
   <body>
-    <div>
-      <div></div>
+    <h1>Border Radius Generate</h1>
+    <div class="wrapper">
+      <div class="browser-support field-wrapper">
+        <span>
+          <input type="checkbox" value="css3" checked>
+          <label for="css3">Css3</label>
+        </span>
+        <span>
+          <input type="checkbox" value="gecko">
+          <label for="gecko">Gecko</label>
+        </span>
+        <span>
+          <input type="checkbox" value="webKit">
+          <label for="webkit">Webkit</label>
+        </span>
+      </div>
+      <div class="field-wrapper">
+        <input type="text" class="box-radius-left-top field-radius" >
+        <input type="text" class="box-radius-right-top field-radius" >
+      </div>
+      <div class="box-radius">
+        <div class="box-radius-content">
+        </div>
+      </div>
+      <div class="field-wrapper -reverse">
+        <input type="text" class="box-radius-left-bottom field-radius" >
+        <input type="text" class="box-radius-right-bottom field-radius" >
+      </div>
+      <div class="box-radius-content-mobile">
+      </div>
     </div>
   </body>
 </html>

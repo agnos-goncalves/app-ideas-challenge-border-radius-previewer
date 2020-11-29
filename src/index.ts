@@ -1,3 +1,6 @@
+import { BorderRadiusGenerate } from './border-radius.service';
 import './style.scss';
 
-function tsss(test = 'sasa') {}
+window.onload = () => {
+  new BorderRadiusGenerate('.wrapper');
+};
